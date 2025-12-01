@@ -2,8 +2,11 @@ package cl.duoc.matias.ticketsapi.ticket.dto;
 
 import cl.duoc.matias.ticketsapi.ticket.model.TicketPriority;
 import cl.duoc.matias.ticketsapi.ticket.model.TicketStatus;
+import jakarta.annotation.Nullable;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.http.ResponseEntity;
+
 import java.time.LocalDateTime;
 @Data
 @Builder

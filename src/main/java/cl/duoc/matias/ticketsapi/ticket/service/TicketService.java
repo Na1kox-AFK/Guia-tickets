@@ -1,12 +1,17 @@
 package cl.duoc.matias.ticketsapi.ticket.service;
 
 import cl.duoc.matias.ticketsapi.ticket.dto.*;
+import cl.duoc.matias.ticketsapi.ticket.filter.TicketFilter;
+import cl.duoc.matias.ticketsapi.ticket.filter.TicketSpecification;
 import cl.duoc.matias.ticketsapi.ticket.model.Ticket;
 import cl.duoc.matias.ticketsapi.ticket.repository.TicketRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.data.autoconfigure.web.DataWebProperties;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.NoSuchElementException;
 @Service
 @RequiredArgsConstructor
@@ -30,11 +35,15 @@ public class TicketService {
                 .orElseThrow(() -> new NoSuchElementException("Ticket not found with id: " + id));
         return mapToResponse(ticket);
     }
-    public List<TicketResponse> getAllTickets() {
-        return ticketRepository.findAll().stream()
-                .filter(t -> !t.isDeleted())
-                .map(this::mapToResponse)
-                .toList();
+    public Page<TicketResponse> findTickets(TicketFilter filter, Pageable pageable) {
+        Specification<Ticket> spec =
+                Specification.where(TicketSpecification.notDeleted())
+                        .and(TicketSpecification.hasStatus(filter.getStatus() != null ? filter.getStatus().name() : null))
+                        .and(TicketSpecification.hasCategory(filter.getCategory()))
+                        .and(TicketSpecification.createdAfter(filter.getFrom()))
+                        .and(TicketSpecification.createdBefore(filter.getTo()));
+        return ticketRepository.findAll(spec, pageable)
+                .map(this::mapToResponse);
     }
     public TicketResponse updateTicket(Long id, TicketUpdateRequest
             request) {
